@@ -1,5 +1,7 @@
 # ShipDashboard
 
+Technologies: ASP.Net Core, MVVM, Blazor
+
 When automatically logged in you are able to:
 1) Add new record to Ship table dashboard - Email with last record will be send automatically
     - Email with last record will be send automatically
