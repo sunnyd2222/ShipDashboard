@@ -1,0 +1,197 @@
+﻿@page "/Shipdashboards"
+@attribute [Authorize(Policy = "SecurityLevel1")]
+
+@using EmailService
+
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject Data.IShipdashboardsService ShipdashboardsService
+@inject EmailService.IEmailSender EmailSender 
+
+<h1>IWSTablica -  Optical Fiber Warehouse</h1>
+@*<AuthorizeView Policy="IsAdmin">
+    <p>
+        Filter by User Name: <input type="text" @oninput="@((arg) => FilterByUserName(arg))" style="width:50px" />
+    </p>
+</AuthorizeView>*@
+<p>
+    <br />Send email with newest task<br />    
+    <button @onclick="PerformReportSend" class="btn btn-outline-dark" type="button">Send Email</button>
+    @if(IsFormVisible)
+            {
+                <p><br />Email send succesfully!<br /></p>
+            }
+    @code {
+        bool IsFormVisible = false;
+        void EmailSendedText()
+        {
+            IsFormVisible = true;
+            StateHasChanged();
+        }
+    }
+</p>
+<p>
+    Filter by completed status:
+    <select class="form-control selectpicker" @onchange="@((arg) => FilterByCompletedStatus(arg))" style="width:100px">
+        <option>Both</option>
+        <option>False</option>
+        <option>True</option>
+    </select>
+</p>
+
+
+@if (allShipdashboards == null)
+{
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+else if (!allShipdashboards.Any())
+{
+    <p>
+        <em>No ShipDashboard items exist. Please add some.</em>
+    </p>
+}
+else
+{ 
+    <table class="table">
+        <thead>
+            <tr>
+                <th>User name</th>
+                <th>Date and Time</th>
+                <th>Ship ID</th>
+                <th>Shipment type</th>
+                @*<th>Record ID</th>*@
+                <th>Description</th>
+                <th>Completed?</th>
+                <AuthorizeView Policy="SecurityLevel2">
+                    <th>Remove</th>
+                </AuthorizeView>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in shipdashboardsToShow)
+            {
+            <tr>
+                <td>@item.UserName</td>
+                <td>@item.DateAndTime</td>
+                <td>@item.ShipId</td>
+                @*<td>@item.ShipdashboardId</td>*@
+                <td>@item.ShipmentType</td>
+                <td>@item.Title</td>
+
+                <td>
+                    <input type="checkbox" checked=@item.IsCompleted @onchange="@((arg) => CompletedChange(arg,item))" />
+                </td>
+                <td>
+                    <AuthorizeView Policy="SecurityLevel2">
+                        <button @onclick="@(() => RemoveShipdashboard(item.ShipdashboardId))">
+                            <i class="oi oi-trash" aria-hidden="true" />
+                        </button>
+                    </AuthorizeView>
+                </td>
+            </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IList<Models.Shipdashboard> shipdashboardsToShow;
+    private IList<Models.Shipdashboard> allShipdashboards;
+
+    private string? filterByName;
+    private bool? filterByIsCompleted;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    private void FilterByUserName(ChangeEventArgs changeEventArgs)
+    {
+        try
+        {
+            //FilterByUserName(int.Parse(changeEventArgs.Value.ToString()));
+        }
+        catch (Exception e) { }
+    }
+    private void FilterByUserName(string sortName)
+    {
+        filterByName = null;
+        try
+        {
+            filterByName = sortName;
+        }
+        catch (Exception e) { }
+        ExecuteFilter();
+    }
+    private void FilterByCompletedStatus(ChangeEventArgs args)
+    {
+        filterByIsCompleted = null;
+        try
+        {
+            filterByIsCompleted = bool.Parse(args.Value.ToString());
+        }
+        catch (Exception e) { }
+        ExecuteFilter();
+    }
+    private void ExecuteFilter()
+    {
+        shipdashboardsToShow = allShipdashboards.Where(t => (filterByName != null && t.UserName == filterByName || filterByName == null)
+        && (filterByIsCompleted != null && t.IsCompleted == filterByIsCompleted || filterByIsCompleted == null)).ToList();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        allShipdashboards = shipdashboardsToShow = ShipdashboardsService.GetShipdashboards();
+
+        var user = (await authenticationStateTask).User;
+        //if (user.FindFirst(claim => claim.Type.Equals("Role")).Value.Equals("User"))
+        //{
+        //    try
+        //    {
+        //        FilterByUserName(user.FindFirst(claim => claim.Type.Equals("ID")).Value + "");
+        //    }
+        //    catch (Exception e) { }
+        //}
+
+
+    }
+
+    private void CompletedChange(ChangeEventArgs evt, Models.Shipdashboard shipdashboard)
+    {
+        shipdashboard.IsCompleted = (bool)evt.Value;
+        ShipdashboardsService.Update(shipdashboard);
+    }
+
+
+    private void RemoveShipdashboard(int shipdashboardId)
+    {
+        Models.Shipdashboard shipdashboardToRemove = allShipdashboards.First(t => t.ShipdashboardId == shipdashboardId);
+        ShipdashboardsService.RemoveShipdashboard(shipdashboardId);
+        allShipdashboards.Remove(shipdashboardToRemove);
+    }
+
+    /// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    [Inject]
+    public IEmailSender _emailSender { get; set; }
+
+    public async Task PerformReportSend()
+    {
+
+        var message = new Message(
+            "IWSTablica email raport asynchronous send",
+            shipdashboardsToShow.Last().UserName + " - " +
+            "Creation time: " + shipdashboardsToShow.Last().DateAndTime + " - " +
+            "Shipment ID: " + shipdashboardsToShow.Last().ShipId + " - " +
+            "Shipment type: " + shipdashboardsToShow.Last().ShipmentType + " - " +
+            System.Environment.NewLine + shipdashboardsToShow.Last().Title + " - ",
+            null
+            );
+
+        await _emailSender.SendEmailAsync(message);
+
+        EmailSendedText();
+    }
+}
+

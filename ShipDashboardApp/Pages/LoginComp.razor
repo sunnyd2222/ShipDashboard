@@ -1,0 +1,75 @@
+﻿@page "/login"
+
+@using global::ShipDashboardApp.Authentication
+@using Microsoft.AspNetCore.Http
+
+@namespace LoginComponent
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject IHttpContextAccessor httpContextAccessor
+@inject ShipDashboardApp.Data.UserExchange UserExchange
+
+@code {
+    private string username = "Admin";
+    private string password = "df$f%y^jhgj&*hrg@#$gfhgj*&)jhgfbdsf#";
+    private string errorMessage;
+    private static string oGroupName = "P2";
+
+    public async Task PerformLogin()
+    {
+        errorMessage = "";
+        try
+        {
+
+            ((CustomAuthStateProvider)AuthenticationStateProvider).ValidateLogin(username, password);
+            username = "";
+            password = "";
+        }
+        catch (Exception e)
+        {
+            errorMessage = e.Message;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        errorMessage = "";
+        try
+        {
+
+            ActiveDirectory activeDirectoryUser = new ActiveDirectory();
+
+            activeDirectoryUser.User_Name = httpContextAccessor.HttpContext.User.Identity.Name;
+            activeDirectoryUser.Group = oGroupName;
+
+            if (activeDirectoryUser.User_Name != null)
+            {
+                if (activeDirectoryUser.CheckIfUserInAd())
+                {
+                    await PerformLogin();
+                }
+
+            }
+
+            UserExchange.Name = activeDirectoryUser.oDisplayName;
+            UserExchange.GroupName = activeDirectoryUser.Group;
+
+        }
+        catch (Exception e)
+        {
+            errorMessage = e.Message;
+        }
+
+    }
+
+}
+
+<AuthorizeView>
+    <NotAuthorized>
+        <div id="hello">User <b>@UserExchange.Name</b> not found in AD group</div>
+    </NotAuthorized>
+    <Authorized>
+        <div id="hello">Logged-in user: <b>@UserExchange.Name</b></div>
+    </Authorized>
+</AuthorizeView>

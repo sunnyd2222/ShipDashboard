@@ -1,0 +1,94 @@
+﻿@page "/AddShipdashboard"
+@attribute [Authorize(Policy = "SecurityLevel2")]
+
+@using Models
+@using Data
+@using EmailService
+
+@inject IJSRuntime jsRuntime
+@inject IShipdashboardsService ShipdashboardsService
+@inject NavigationManager NavigationManager
+@inject IAuthorizationService AuthorizationService
+@inject UserExchange UserExchange
+@inject EmailService.IEmailSender EmailSender
+
+<h3>Add New Record</h3>
+
+<EditForm Model="@newShipdashboardItem" OnValidSubmit="@AddNewShipdashboard">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <AuthorizeView Context="Form" Policy="IsAdmin">
+        @{
+            string[] dispUserName = UserExchange.Name.Split(@"\");
+        }
+        <div class="form-group">
+            User Name: <b>@UserExchange.Name</b><br />
+        </div>
+    </AuthorizeView>
+
+    <div class="form-group">
+        Input Ship ID: <br />
+        <InputTextArea rows="1" @bind-Value="newShipdashboardItem.ShipId" />
+    </div>
+    <div class="form-group">
+    Choose Shipment Type: <br />
+    <InputSelect rows="1" @bind-Value="newShipdashboardItem.ShipmentType">
+            <option value="Ocean">Ocean</option>
+            <option value="Air">Air</option>
+            <option value="Truck">Truck</option>
+    </InputSelect>
+    </div>
+    <div class="form-group">
+        Description: <br />
+        <InputTextArea cols="100" rows="10" @bind-Value="newShipdashboardItem.Title" />
+    </div>
+    <p class="actions">
+        <button class="btn btn-outline-dark" type="submit">Create and SendEmail</button>
+        @if (IsFormVisible)
+        {
+        <p><br />Email send succesfully!<br /></p>
+        }
+        @code {
+            bool IsFormVisible = false;
+            void EmailSendedText()
+            {
+                IsFormVisible = true;
+                StateHasChanged();
+            }
+        }
+        </p>
+    </EditForm>
+
+@code { [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    private Models.Shipdashboard newShipdashboardItem = new Shipdashboard();
+
+
+    [Inject]
+    public IEmailSender _emailSender { get; set; }
+
+    private async void AddNewShipdashboard()
+    {
+        var user = (await authenticationStateTask).User;
+        //if (user.FindFirst(claim => claim.Type.Equals("Role")).Value.Equals("User"))
+        newShipdashboardItem.UserName = UserExchange.Name;//Int32.Parse(user.FindFirst(claim => claim.Type.Equals("ID")).Value);
+
+        ShipdashboardsService.AddShipdashboard(newShipdashboardItem);
+        //NavigationManager.NavigateTo("Shipdashboards");
+
+        var message = new Message(
+            "IWSTablica email raport asynchronous send",
+            @UserExchange.Name + " - " +
+            "Creation time: " + newShipdashboardItem.DateAndTime + " - " +
+            "Shipment ID: " + newShipdashboardItem.ShipId + " - " +
+            "Shipment type: " + newShipdashboardItem.ShipmentType + " - " +
+            System.Environment.NewLine + newShipdashboardItem.Title + " - ",
+            null
+            );
+
+        await _emailSender.SendEmailAsync(message);
+
+        EmailSendedText();
+    }
+}
