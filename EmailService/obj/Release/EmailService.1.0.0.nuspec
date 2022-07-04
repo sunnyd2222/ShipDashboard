@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>EmailService</id>
+    <version>1.0.0</version>
+    <authors>EmailService</authors>
+    <description>Package Description</description>
+    <dependencies>
+      <group targetFramework=".NETCoreApp3.1">
+        <dependency id="Microsoft.AspNetCore.Http" version="2.2.2" exclude="Build,Analyzers" />
+        <dependency id="NETCore.MailKit" version="2.0.3" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="C:\Users\OlesiewiA\Desktop\ShipDashboardAppSource\EmailService\bin\Release\netcoreapp3.1\win-x86\EmailService.dll" target="lib\netcoreapp3.1\EmailService.dll" />
+  </files>
+</package>

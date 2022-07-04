@@ -1,0 +1,9 @@
+C:\Users\OlesiewiA\Desktop\ShipDashboardAppSource\EmailService\bin\Release\netcoreapp3.1\win-x86\EmailService.deps.json
+C:\Users\OlesiewiA\Desktop\ShipDashboardAppSource\EmailService\bin\Release\netcoreapp3.1\win-x86\EmailService.dll
+C:\Users\OlesiewiA\Desktop\ShipDashboardAppSource\EmailService\bin\Release\netcoreapp3.1\win-x86\EmailService.pdb
+C:\Users\OlesiewiA\Desktop\ShipDashboardAppSource\EmailService\obj\Release\netcoreapp3.1\win-x86\EmailService.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\OlesiewiA\Desktop\ShipDashboardAppSource\EmailService\obj\Release\netcoreapp3.1\win-x86\EmailService.AssemblyInfoInputs.cache
+C:\Users\OlesiewiA\Desktop\ShipDashboardAppSource\EmailService\obj\Release\netcoreapp3.1\win-x86\EmailService.AssemblyInfo.cs
+C:\Users\OlesiewiA\Desktop\ShipDashboardAppSource\EmailService\obj\Release\netcoreapp3.1\win-x86\EmailService.csproj.CoreCompileInputs.cache
+C:\Users\OlesiewiA\Desktop\ShipDashboardAppSource\EmailService\obj\Release\netcoreapp3.1\win-x86\EmailService.dll
+C:\Users\OlesiewiA\Desktop\ShipDashboardAppSource\EmailService\obj\Release\netcoreapp3.1\win-x86\EmailService.pdb
